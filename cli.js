@@ -21,9 +21,9 @@ Ftp.auth(ftpConf.user, ftpConf.pass, (err, data) => {
     console.log('Auth success, welcome.');
 });
 
-// -m put pathToFile | upload file to server.
+// -m put filePaths (1 - *) | upload one or more files to server.
 if(argv.m === 'put')
-    uploadToServer();
+    uploadFileToServer(argv._);
 
 // -m get pathToFileOnServer | fetch the file from server.
 if(argv.m === 'get')
@@ -35,6 +35,10 @@ if(argv.m === 'mkdir')
 // -m diff pathToFile1 pathToFile2 | returns true if the files is identical.
 if(argv.m === 'diff')
     diffFiles(argv._[0], argv._[1]);
+
+// -m diffFolder /dir_name |
+if(argv.m === 'diffFolder')
+    diffAllFilesInFolder(argv._[0]);
 
 function createDir() {
     Ftp.ls('.', (err, res) => {
@@ -58,18 +62,17 @@ function createDir() {
     });
 }
 
-function getFromServer(pathToFile) {
-    // const getFromServerPath = '/new_dir/testfile.txt';
-    Ftp.get(pathToFile, 'filefromserver.txt', err => {
+function getFromServer(fileName) {
+    const prefixedPath = `/new_dir/${fileName}`;
+    Ftp.get(prefixedPath, 'filefromserver.txt', err => {
         if(err)
             return console.log('err: ', err);
     
-        console.log(`${getFromServerPath} was successfully fetched`);
+        console.log(`${fileName} was successfully fetched`);
     });
 }
 
-function uploadToServer() {
-    const filePaths = ['./testfile.txt'];
+function uploadFileToServer(filePaths) {
     filePaths.forEach(filePath => {
         Ftp.put(filePath, `/new_dir/${filePath}`, err => {
             if(err)
@@ -87,4 +90,13 @@ function diffFiles(file1, file2) {
     
         return bool;
     });
+}
+
+function diffAllFilesInFolder(folder1) {
+    Ftp.ls(folder1, (err, res) => {
+        if(err)
+            return console.log('err: ', err);
+
+        console.log(res);
+    })
 }
