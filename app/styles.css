@@ -1,0 +1,47 @@
+.title {
+    text-align: center;
+}
+
+.wrapper {
+    height: 80vh;
+}
+
+.sub-title {
+    margin-bottom: 10px;
+    font-size: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.box {
+    height: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.wrapper .row {
+    margin: 5px 0px;
+}
+
+.wrapper .row i {
+    margin-right: 5px;
+}
+
+#input-path {
+    width: 50%;
+}
+
+.local-directories {
+    float: left;
+    width: 30%;
+}
+
+#parent-folder {
+    
+}
+
+#upload-files {
+    float: right;
+    width: 70%;
+    background-color: #eee;
+}

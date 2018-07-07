@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="styles.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" 
+            integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" 
+            crossorigin="anonymous">
+        <title>FTP upload</title>
+        <body>
+            <h1 class="title">FTP</h1>
+            <div>
+                <input type="text" id="input-path" />
+                <button id="button-path">Go to folder</button>
+            </div>
+            <div class="wrapper">
+                <div class="local-directories">
+                    <div class="sub-title">Local files</div>
+                    <div id="parent-folder"><i class="fas fa-folder"></i></div>
+                    <div id="directory-tree" class="box"></div>
+                </div>
+                <div id="upload-files" class="box">
+                    <div class="sub-title">Files to upload</div>
+                </div>
+            </div>
+            <script>require('./controller.js')</script>
+        </body>
+    </head>
+</html>

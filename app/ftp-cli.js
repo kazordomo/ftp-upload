@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 
-//TODO: use path module to make the folder paths correct throughout (different os for example).
-
 const jsftp = require('jsftp');
-const { ftpConf } = require('./config/index.js');
+const { ftpConf } = require('../config/index.js');
 const comperator = require('file-compare');
 const argv = require('minimist')(process.argv.slice(2));
 
@@ -74,7 +72,7 @@ function getFromServer(fileName) {
 
 function uploadFileToServer(filePaths) {
     filePaths.forEach(filePath => {
-        Ftp.put(filePath, `/new_dir/${filePath}`, err => {
+        Ftp.put(filePath, `${filePath}`, err => {
             if(err)
                 return console.log('err: ', err);
         
@@ -99,4 +97,8 @@ function diffAllFilesInFolder(folder1) {
 
         console.log(res);
     })
+}
+
+module.exports = {
+    getFromServer,
 }

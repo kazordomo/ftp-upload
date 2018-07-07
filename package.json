@@ -1,12 +1,14 @@
 {
   "name": "ftp-upload",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "main.js",
   "license": "MIT",
-  "bin": {
-    "ftp-cli": "cli.js"
+  "scripts": {
+    "start": "electron ."
   },
   "dependencies": {
+    "directory-tree": "^2.1.0",
+    "electron": "^2.0.4",
     "file-compare": "^0.0.2",
     "jsftp": "^2.1.3",
     "minimist": "^1.2.0"
