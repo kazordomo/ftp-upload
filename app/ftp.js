@@ -26,24 +26,45 @@ function getFromServer(fileName) {
     });
 }
 
-function listFromServerFolder(dirName) {
+function listServerFiles(dirPath) {
     return new Promise((resolve, reject) => {
-        Ftp.ls(dirName, (err, res) => {
+        Ftp.ls(dirPath, (err, res) => {
             if(err)
                 return reject(err);
-    
-            return resolve(res.map(file => file.name));
+            
+            return resolve(res);
         })
     });
 }
 
 function listLocalFiles(dirPath) {
-    console.log(dirPath);
     return dirTree(dirPath);
+}
+
+function uploadFileToServer(filePath) {
+    const fileName = filePath.split('\\');
+    fileName[fileName.length - 1];
+    //second argument where to put it on the remote server.
+    Ftp.put(filePath, fileName[fileName.length - 1], err => {
+        if(err)
+            return console.log('err: ', err);
+    
+        console.log(`${filePath} succesfully uploaded!`);
+    });
+}
+
+function diffFiles(file1, file2) {
+    return comperator.compare(file1, file2, (bool, err) => {
+        if(err)
+            return console.log('err: ', err);
+    
+        return bool;
+    });
 }
 
 module.exports = {
     getFromServer,
-    listFromServerFolder,
+    listServerFiles,
     listLocalFiles,
+    uploadFileToServer,
 }

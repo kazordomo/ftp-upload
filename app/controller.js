@@ -6,16 +6,25 @@ const inputPath = document.getElementById('input-path');
 const buttonPath = document.getElementById('button-path');
 const buttonParentFolder = document.getElementById('parent-folder')
 const uploadFiles = document.getElementById('upload-files');
+const buttonUpload = document.getElementById('button-upload');
 const uploadFilesArr = [];
 
 const init = () => {
     initEventListeners();
+    // listFromServer();
 }
+
+// const listFromServer = async () => {
+//     const serverDirTree = await ftp.listServerFiles('.');
+// }
 
 const initEventListeners = () => {
     buttonPath.addEventListener('click', () => getProjectFromPath());
-    inputPath.value = 'C:\\xampp\\htdocs\\brokerwebpage\\wp-content\\plugins\\mspecs';
-    buttonParentFolder.addEventListener('click', () => moveUpOneFolder(inputPath.value))
+    // inputPath.value = 'C:\\xampp\\htdocs\\brokerwebpage\\wp-content\\plugins\\mspecs';
+    // inputPath.value = 'C:\\Users\\Zak\\Dev\\Kaz\\ftp-upload\\dummyuploads';
+    inputPath.value = 'C:\\users\\Zak\\Dev\\Kaz\\ftp-upload\\app';
+    buttonParentFolder.addEventListener('click', () => moveUpOneFolder(inputPath.value));
+    buttonUpload.addEventListener('click', () => uploadToServer());
 }
 
 const createDirTreeElem = (item, parentDiv) => {
@@ -29,7 +38,7 @@ const createDirTreeElem = (item, parentDiv) => {
         newDiv.addEventListener('click', () => openDirectory(item.name));
     } else {
         newIcon.classList.add('far', 'fa-file-alt');
-        newDiv.addEventListener('click', () => addToUpload(item.name));
+        newDiv.addEventListener('click', () => addToUpload(item));
     }
 
     newSpan.innerHTML = item.name;
@@ -52,7 +61,6 @@ const moveUpOneFolder = path => {
 }
 
 const openDirectory = (dirName, reset) => {
-    //TODO: should not need to send a second parameter...
     if(reset) {
         inputElement.value = dirName;
     } else {
@@ -73,8 +81,23 @@ const addToUpload = file => {
 
     uploadFilesArr.push(file);
     let newDiv = document.createElement('div');
-    newDiv.innerHTML = file;
+    newDiv.setAttribute('id', file);
+    newDiv.addEventListener('click', () => removeFromUpload(file));
+    newDiv.innerHTML = file.name;
     uploadFiles.appendChild(newDiv);
+}
+
+//error when uploading multiple files
+const uploadToServer = () => {
+    uploadFilesArr.forEach(file => {
+        ftp.uploadFileToServer(file.path);
+    });
+}
+
+//TODO: BUGGY
+const removeFromUpload = file => {
+    uploadFilesArr.splice(uploadFilesArr.indexOf(file), 1);
+    document.getElementById(file).remove();
 }
 
 const getProjectFromPath = () => {

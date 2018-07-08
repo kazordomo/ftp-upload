@@ -21,6 +21,7 @@
 
 .wrapper .row {
     margin: 5px 0px;
+    cursor: pointer;
 }
 
 .wrapper .row i {
@@ -37,7 +38,7 @@
 }
 
 #parent-folder {
-    
+
 }
 
 #upload-files {
