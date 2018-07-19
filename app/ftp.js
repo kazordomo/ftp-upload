@@ -2,6 +2,7 @@ const jsftp = require('jsftp');
 const dirTree = require('directory-tree');
 const { ftpConf } = require('../config/index.js');
 const comperator = require('file-compare');
+const fs = require('fs');
 
 const Ftp = new jsftp({
     host: ftpConf.host,
@@ -17,12 +18,18 @@ Ftp.auth(ftpConf.user, ftpConf.pass, (err, data) => {
     console.log('Auth success, welcome.');
 });
 
-function getFromServer(fileName) {
-    Ftp.get(fileName, 'filefromserver.txt', err => {
-        if(err)
-            return console.log('err: ', err);
-    
-        console.log(`${fileName} was successfully fetched`);
+function checkDiff(localFilePath) {
+    console.log(localFilePath);
+    const fileName = getFileNameFromPath(localFilePath);
+    return new Promise((resolve, reject) => { 
+        //TODO: we need the whole path, but splitted at the right time.
+        Ftp.get(fileName, 'serverFile.txt', err => {
+            if(err)
+                return reject(err);
+        
+            console.log(`${fileName} was successfully fetched`);
+            return resolve(diffFiles(localFilePath, './serverFile.txt'));
+        });
     });
 }
 
@@ -42,8 +49,7 @@ function listLocalFiles(dirPath) {
 }
 
 function uploadFileToServer(filePath) {
-    const fileName = filePath.split('\\');
-    fileName[fileName.length - 1];
+    const fileName = getFileNameFromPath(filePath);
     //second argument where to put it on the remote server.
     Ftp.put(filePath, fileName[fileName.length - 1], err => {
         if(err)
@@ -54,17 +60,24 @@ function uploadFileToServer(filePath) {
 }
 
 function diffFiles(file1, file2) {
-    return comperator.compare(file1, file2, (bool, err) => {
-        if(err)
-            return console.log('err: ', err);
-    
-        return bool;
+    return new Promise((resolve, reject) => { 
+        comperator.compare(file1, file2, (bool, err) => {
+            if(err)
+                return reject(err);
+        
+            return resolve(bool);
+        });
     });
 }
 
+function getFileNameFromPath(path) {
+    //TODO: path will only be split successfully with \\ on windows
+    const splitedPath = path.split('\\');
+    return splitedPath[splitedPath.length - 1];
+}
+
 module.exports = {
-    getFromServer,
-    listServerFiles,
     listLocalFiles,
     uploadFileToServer,
+    checkDiff,
 }

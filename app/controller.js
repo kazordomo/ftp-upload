@@ -1,4 +1,5 @@
 const ftp = require('./ftp');
+const { inputPathDefault } = require('../config');
 
 const inputElement = document.getElementById('input-path');
 const dirTree = document.getElementById('directory-tree');
@@ -11,18 +12,13 @@ const uploadFilesArr = [];
 
 const init = () => {
     initEventListeners();
-    // listFromServer();
 }
 
-// const listFromServer = async () => {
-//     const serverDirTree = await ftp.listServerFiles('.');
-// }
+const checkDiff = async localFilePath => await ftp.checkDiff(localFilePath);
 
 const initEventListeners = () => {
     buttonPath.addEventListener('click', () => getProjectFromPath());
-    // inputPath.value = 'C:\\xampp\\htdocs\\brokerwebpage\\wp-content\\plugins\\mspecs';
-    // inputPath.value = 'C:\\Users\\Zak\\Dev\\Kaz\\ftp-upload\\dummyuploads';
-    inputPath.value = 'C:\\users\\Zak\\Dev\\Kaz\\ftp-upload\\app';
+    inputPath.value = inputPathDefault;
     buttonParentFolder.addEventListener('click', () => moveUpOneFolder(inputPath.value));
     buttonUpload.addEventListener('click', () => uploadToServer());
 }
@@ -72,6 +68,14 @@ const openDirectory = (dirName, reset) => {
     document.getElementById('button-path').click();
 }
 
+const fileDiffStyle = async (path, element) => {
+    const noFileDiff = await checkDiff(path);
+    if(noFileDiff)
+        element.style.color = 'green';
+    else
+        element.style.color = 'red';
+}
+
 const addToUpload = file => {
     const isAdded = 
         uploadFilesArr.filter(fileInArr => file === fileInArr).length;
@@ -81,23 +85,23 @@ const addToUpload = file => {
 
     uploadFilesArr.push(file);
     let newDiv = document.createElement('div');
-    newDiv.setAttribute('id', file);
+    newDiv.setAttribute('id', file.name);
     newDiv.addEventListener('click', () => removeFromUpload(file));
     newDiv.innerHTML = file.name;
     uploadFiles.appendChild(newDiv);
+    fileDiffStyle(file.path, newDiv);
 }
 
 //error when uploading multiple files
-const uploadToServer = () => {
+const uploadToServer = () => {+
     uploadFilesArr.forEach(file => {
         ftp.uploadFileToServer(file.path);
     });
 }
 
-//TODO: BUGGY
 const removeFromUpload = file => {
     uploadFilesArr.splice(uploadFilesArr.indexOf(file), 1);
-    document.getElementById(file).remove();
+    document.getElementById(file.name).remove();
 }
 
 const getProjectFromPath = () => {
