@@ -9,62 +9,86 @@ const buttonParentFolder = document.getElementById('parent-folder')
 const uploadFiles = document.getElementById('upload-files');
 const buttonUpload = document.getElementById('button-upload');
 const uploadFilesArr = [];
+let activeFolder = '';
 
 const init = () => {
+    inputPath.value = inputPathDefault;
     initEventListeners();
 }
 
 const checkDiff = async localFilePath => await ftp.checkDiff(localFilePath);
 
 const initEventListeners = () => {
-    buttonPath.addEventListener('click', () => getProjectFromPath());
-    inputPath.value = inputPathDefault;
+    buttonPath.addEventListener('click', () => getFolder());
     buttonParentFolder.addEventListener('click', () => moveUpOneFolder(inputPath.value));
     buttonUpload.addEventListener('click', () => uploadToServer());
 }
 
-const createDirTreeElem = (item, parentDiv) => {
+const createDirTreeDiv = item => {
     let newDiv = document.createElement('div');
     newDiv.classList.add('row');
-    let newSpan = document.createElement('span');
-    let newIcon = document.createElement('i');
-
-    if(item.type === 'directory') {
-        newIcon.classList.add('fas', 'fa-folder');
-        newDiv.addEventListener('click', () => openDirectory(item.name));
-    } else {
-        newIcon.classList.add('far', 'fa-file-alt');
-        newDiv.addEventListener('click', () => addToUpload(item));
-    }
-
-    newSpan.innerHTML = item.name;
-    newDiv.appendChild(newIcon);
-    newDiv.appendChild(newSpan);
-    parentDiv.appendChild(newDiv);
+    const clickEvent = () => item.type === 'directory' ? 
+        openDirectory(item.name) : 
+        addToUpload(item);
+    newDiv.addEventListener('click', () => clickEvent());
+    return newDiv;
 }
 
-const getAndOutPutFiles = projectPath => {
-    const filesAndFolders = ftp.listLocalFiles(projectPath);
-    filesAndFolders.children.forEach(item => {
-        createDirTreeElem(item, dirTree);
-    });
+const createDirTreeSpan = item => {
+    const newSpan = document.createElement('span');
+    newSpan.innerHTML = item.name;
+    return newSpan;
+}
+
+const createDirTreeIcon = item => {
+    let newIcon = document.createElement('i');
+    if(item.type === 'directory')
+        newIcon.classList.add('fas', 'fa-folder');
+    else
+        newIcon.classList.add('far', 'fa-file-alt');
+    return newIcon;
+}
+
+const createDirTreeElem = (item, parentDiv) => {
+    let divEle = createDirTreeDiv(item);
+    let spanEle = createDirTreeSpan(item);
+    let iconEle = createDirTreeIcon(item);
+
+    divEle.appendChild(iconEle);
+    divEle.appendChild(spanEle);
+    parentDiv.appendChild(divEle);
+}
+
+const getFolder = () => {
+    const filesAndFolders = ftp.listLocalFiles(inputElement.value);
+    if(activeFolder === inputElement.value)
+        return;
+    else {
+        activeFolder = inputElement.value;
+        filesAndFolders.children.forEach(item => createDirTreeElem(item, dirTree));
+    }
+}
+
+const getParentDir = path => {
+    const splitPath = path.split('\\');
+    splitPath.splice([splitPath.length - 1], 1);
+    return splitPath.join('\\');
 }
 
 const moveUpOneFolder = path => {
-    const newPath = path.split('\\');
-    newPath.splice([newPath.length - 1], 1);
-    openDirectory(newPath.join('\\'), true);
+    const newPath = getParentDir(path);
+    openDirectory(newPath, true);
 }
 
 const openDirectory = (dirName, reset) => {
-    if(reset) {
+    if(reset)
         inputElement.value = dirName;
-    } else {
+    else
         inputElement.value += `\\${dirName}`;
-    }
-    while (dirTree.firstChild) {
+
+    while (dirTree.firstChild)
         dirTree.removeChild(dirTree.firstChild);
-    }
+        
     document.getElementById('button-path').click();
 }
 
@@ -76,6 +100,14 @@ const fileDiffStyle = async (path, element) => {
         element.style.color = 'red';
 }
 
+const createUploadDiv = file => {
+    let newDiv = document.createElement('div');
+    newDiv.setAttribute('id', file.name);
+    newDiv.addEventListener('click', () => removeFromUpload(file));
+    newDiv.innerHTML = file.name;
+    return newDiv;
+}
+
 const addToUpload = file => {
     const isAdded = 
         uploadFilesArr.filter(fileInArr => file === fileInArr).length;
@@ -84,16 +116,14 @@ const addToUpload = file => {
         return;
 
     uploadFilesArr.push(file);
-    let newDiv = document.createElement('div');
-    newDiv.setAttribute('id', file.name);
-    newDiv.addEventListener('click', () => removeFromUpload(file));
-    newDiv.innerHTML = file.name;
-    uploadFiles.appendChild(newDiv);
-    fileDiffStyle(file.path, newDiv);
+    let divEle = createUploadDiv(file);
+    uploadFiles.appendChild(divEle);
+    fileDiffStyle(file.path, divEle);
 }
 
 //error when uploading multiple files
-const uploadToServer = () => {+
+const uploadToServer = () => {
+    //TODO: promise.all?
     uploadFilesArr.forEach(file => {
         ftp.uploadFileToServer(file.path);
     });
@@ -102,10 +132,6 @@ const uploadToServer = () => {+
 const removeFromUpload = file => {
     uploadFilesArr.splice(uploadFilesArr.indexOf(file), 1);
     document.getElementById(file.name).remove();
-}
-
-const getProjectFromPath = () => {
-    getAndOutPutFiles(inputElement.value);
 }
 
 init();

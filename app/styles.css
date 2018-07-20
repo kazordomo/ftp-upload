@@ -37,6 +37,10 @@
     width: 30%;
 }
 
+.top {
+    margin: 10px 0px;
+}
+
 #parent-folder {
     cursor: pointer;
 }
