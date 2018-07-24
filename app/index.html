@@ -11,19 +11,22 @@
             <div class="top">
                 <input type="text" id="input-path" />
                 <button id="button-path">Go to folder</button>
-                <button id="button-upload">Upload files</button>
             </div>
             <div class="wrapper">
-                <div class="local-directories">
+                <div class="local-directories box">
                     <div class="sub-title">Local files</div>
                     <div id="parent-folder">
-                        <i class="fas fa-folder"></i>
+                        <i class="far fa-folder"></i>
                         <i class="fas fa-level-up-alt"></i>
                     </div>
-                    <div id="directory-tree" class="box"></div>
+                    <div id="directory-tree"></div>
                 </div>
-                <div id="upload-files" class="box">
+                <div class="upload-box box">
                     <div class="sub-title">Files to upload</div>
+                    <div id="upload-files"></div>
+                    <button id="button-single-upload">Upload to site</button>
+                    <button id="button-multiple-upload">Upload to all sites</button>
+                    <button id="button-zip">Download project</button>
                 </div>
             </div>
             <script>require('./controller.js')</script>

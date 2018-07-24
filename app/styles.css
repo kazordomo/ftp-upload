@@ -2,19 +2,13 @@
     text-align: center;
 }
 
-.wrapper {
-    height: 80vh;
-}
-
 .sub-title {
     margin-bottom: 10px;
     font-size: 20px;
-    text-align: center;
     font-weight: bold;
 }
 
 .box {
-    height: 100%;
     padding: 15px;
     box-sizing: border-box;
 }
@@ -34,7 +28,9 @@
 
 .local-directories {
     float: left;
-    width: 30%;
+    width: 40%;
+    height: 95vh;
+    background-color: #eee;
 }
 
 .top {
@@ -45,8 +41,16 @@
     cursor: pointer;
 }
 
-#upload-files {
+.upload-box {
     float: right;
-    width: 70%;
-    background-color: #eee;
+    width: 60%;
+}
+
+#upload-files {
+    min-height: 75vh;
+    margin-bottom: 10px;
+}
+
+#button-upload {
+    float: right;
 }

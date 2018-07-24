@@ -1,13 +1,10 @@
 const ftp = require('./ftp');
+const { zipProject } = require('./utils');
 const { inputPathDefault } = require('../config');
 
 const inputElement = document.getElementById('input-path');
 const dirTree = document.getElementById('directory-tree');
 const inputPath = document.getElementById('input-path');
-const buttonPath = document.getElementById('button-path');
-const buttonParentFolder = document.getElementById('parent-folder')
-const uploadFiles = document.getElementById('upload-files');
-const buttonUpload = document.getElementById('button-upload');
 const uploadFilesArr = [];
 let activeFolder = '';
 
@@ -19,9 +16,17 @@ const init = () => {
 const checkDiff = async localFilePath => await ftp.checkDiff(localFilePath);
 
 const initEventListeners = () => {
+    const buttonPath = document.getElementById('button-path');
+    const buttonParentFolder = document.getElementById('parent-folder')
+    const buttonUploadSingle = document.getElementById('button-single-upload');
+    const buttonUploadMultiple = document.getElementById('button-multiple-upload');
+    const buttonZip = document.getElementById('button-zip');
+
     buttonPath.addEventListener('click', () => getFolder());
     buttonParentFolder.addEventListener('click', () => moveUpOneFolder(inputPath.value));
-    buttonUpload.addEventListener('click', () => uploadToServer());
+    buttonUploadSingle.addEventListener('click', () => uploadToSingleSite());
+    buttonUploadMultiple.addEventListener('click', () => uploadToMultipleSites());
+    buttonZip.addEventListener('click', () => zipProject());
 }
 
 const createDirTreeDiv = item => {
@@ -109,6 +114,8 @@ const createUploadDiv = file => {
 }
 
 const addToUpload = file => {
+    const uploadFiles = document.getElementById('upload-files');
+
     const isAdded = 
         uploadFilesArr.filter(fileInArr => file === fileInArr).length;
 
@@ -118,15 +125,22 @@ const addToUpload = file => {
     uploadFilesArr.push(file);
     let divEle = createUploadDiv(file);
     uploadFiles.appendChild(divEle);
-    fileDiffStyle(file.path, divEle);
+    // fileDiffStyle(file.path, divEle);
 }
 
-//error when uploading multiple files
-const uploadToServer = () => {
+const uploadAllFiles = func => {
     //TODO: promise.all?
     uploadFilesArr.forEach(file => {
-        ftp.uploadFileToServer(file.path);
+        func(file.path);
     });
+}
+
+const uploadToSingleSite = () => {
+    uploadAllFiles(ftp.uploadFileToServer);
+}
+
+const uploadToMultipleSites = () => {
+    uploadAllFiles(ftp.uploadFileToAllSites);
 }
 
 const removeFromUpload = file => {

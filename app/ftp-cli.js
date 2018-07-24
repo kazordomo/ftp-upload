@@ -3,6 +3,7 @@
 const jsftp = require('jsftp');
 const { ftpConf } = require('../config/index.js');
 const comperator = require('file-compare');
+const zipper = require('zip-local');
 const argv = require('minimist')(process.argv.slice(2));
 
 const Ftp = new jsftp({
@@ -27,9 +28,6 @@ if(argv.m === 'put')
 if(argv.m === 'get')
     getFromServer(argv._[0]);
 
-if(argv.m === 'mkdir')
-    createDir();
-
 // -m diff pathToFile1 pathToFile2 | returns true if the files is identical.
 if(argv.m === 'diff')
     diffFiles(argv._[0], argv._[1]);
@@ -38,27 +36,9 @@ if(argv.m === 'diff')
 if(argv.m === 'diffFolder')
     diffAllFilesInFolder(argv._[0]);
 
-function createDir() {
-    Ftp.ls('.', (err, res) => {
-        if(err)
-            return console.log('err: ', err);
-    
-        const arr = [];
-        res.forEach(item => {
-            if(item.name === 'new_dir')
-                arr.push(item);
-        });
-    
-        if(!arr.length) {
-            Ftp.raw('mkd', '/new_dir', (err, data) => {
-                if(err)
-                    return console.log('err: ', err);
-    
-                console.log(data);
-            });
-        }
-    });
-}
+// -m zip | export a zip version of the project
+if(argv.m === 'zip')
+    zipProject();
 
 function getFromServer(fileName) {
     const prefixedPath = `/new_dir/${fileName}`;
@@ -99,6 +79,17 @@ function diffAllFilesInFolder(folder1) {
     })
 }
 
-module.exports = {
-    getFromServer,
+// should not zip the Conf file for instance.
+function zipProject() {
+    zipper.zip('C:\\users\\Zak\\Dev\\Kaz\\ftp-upload', (err, zipped) => {
+        if(err)
+            return console.log(err);
+
+        zipped.save('testProject.zip', err => {
+            if(err)
+                return console.log(err);
+
+            console.log('Zip success!');
+        })
+    })
 }
