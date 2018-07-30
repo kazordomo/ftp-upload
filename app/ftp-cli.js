@@ -3,8 +3,8 @@
 const jsftp = require('jsftp');
 const { ftpConf } = require('../config/index.js');
 const comperator = require('file-compare');
-const zipper = require('zip-local');
 const argv = require('minimist')(process.argv.slice(2));
+const { zipProject } = require('./utils');
 
 const Ftp = new jsftp({
     host: ftpConf.host,
@@ -76,20 +76,5 @@ function diffAllFilesInFolder(folder1) {
             return console.log('err: ', err);
 
         console.log(res);
-    })
-}
-
-// should not zip the Conf file for instance.
-function zipProject() {
-    zipper.zip('C:\\users\\Zak\\Dev\\Kaz\\ftp-upload', (err, zipped) => {
-        if(err)
-            return console.log(err);
-
-        zipped.save('testProject.zip', err => {
-            if(err)
-                return console.log(err);
-
-            console.log('Zip success!');
-        })
     })
 }

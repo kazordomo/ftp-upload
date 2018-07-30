@@ -1,6 +1,5 @@
 const ftp = require('./ftp');
-const { zipProject } = require('./utils');
-const { inputPathDefault } = require('../config');
+const { paths } = require('../config');
 
 const inputElement = document.getElementById('input-path');
 const dirTree = document.getElementById('directory-tree');
@@ -9,7 +8,7 @@ const uploadFilesArr = [];
 let activeFolder = '';
 
 const init = () => {
-    inputPath.value = inputPathDefault;
+    inputPath.value = paths.inputPathDefault;
     initEventListeners();
 }
 
@@ -20,13 +19,13 @@ const initEventListeners = () => {
     const buttonParentFolder = document.getElementById('parent-folder')
     const buttonUploadSingle = document.getElementById('button-single-upload');
     const buttonUploadMultiple = document.getElementById('button-multiple-upload');
-    const buttonZip = document.getElementById('button-zip');
+    const buttonUploadAllSingle = document.getElementById('button-single-all-upload');
 
     buttonPath.addEventListener('click', () => getFolder());
     buttonParentFolder.addEventListener('click', () => moveUpOneFolder(inputPath.value));
     buttonUploadSingle.addEventListener('click', () => uploadToSingleSite());
+    buttonUploadAllSingle.addEventListener('click', () => uploadAllFilesToSite());
     buttonUploadMultiple.addEventListener('click', () => uploadToMultipleSites());
-    buttonZip.addEventListener('click', () => zipProject());
 }
 
 const createDirTreeDiv = item => {
@@ -128,19 +127,39 @@ const addToUpload = file => {
     // fileDiffStyle(file.path, divEle);
 }
 
-const uploadAllFiles = func => {
-    //TODO: promise.all?
-    uploadFilesArr.forEach(file => {
+const uploadAllFiles = (func, arr = uploadFilesArr) => {
+    arr.forEach(file => {
         func(file.path);
     });
 }
 
-const uploadToSingleSite = () => {
-    uploadAllFiles(ftp.uploadFileToServer);
+const uploadToSingleSite = arr => {
+    console.log(arr);
+    uploadAllFiles(ftp.uploadFileToServer, arr);
 }
 
 const uploadToMultipleSites = () => {
     uploadAllFiles(ftp.uploadFileToAllSites);
+}
+
+// upload everything from the most parent folder (inputpathdefault).
+const uploadAllFilesToSite = () => {
+    const filesAndFolders = ftp.listLocalFiles(paths.inputPathDefault);
+
+    const filePaths = [];
+    const recursive = arr => {
+        arr.forEach(item => {
+            if(item.type === 'directory') {
+                recursive(item.children);
+            } else {
+                filePaths.push(item);
+            }
+        });
+    }
+
+    recursive(filesAndFolders.children);
+    if(filePaths.length)
+        uploadToSingleSite(filePaths);
 }
 
 const removeFromUpload = file => {

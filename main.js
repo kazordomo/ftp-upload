@@ -1,4 +1,5 @@
-const {app, BrowserWindow} = require('electron');
+const {app, BrowserWindow, Menu} = require('electron');
+const { zipProject } = require('./app/utils');
 
 let mainWin;
 
@@ -14,7 +15,30 @@ function createWindow () {
     });
 }
 
-app.on('ready', createWindow)
+app.on('ready', () => {
+    createWindow();
+    const template = [
+        {
+            label: 'Actions',
+            submenu: [
+                {
+                    label: 'Download project',
+                    click: zipProject,
+                }
+            ],
+        },
+        {
+            label: 'View',
+            submenu: [
+                {role: 'reload'},
+                {role: 'toggledevtools'},
+            ],
+        }
+    ];
+
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+})
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
