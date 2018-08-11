@@ -1,6 +1,6 @@
 # FTP UPLOAD
 
-**Upload to one site or multiple sites.**
+**Purpose of being able to upload to one or multiple sites.**
 
 EXAMPLE:
 public_html/
@@ -11,6 +11,6 @@ public_html/
 
 All the files selected will be uploaded to all children in /sites.
 
-It is important that the local folder in the GUI matches the dir-tree/structure
-on the server. This because the files being uploaded will use the same path,
-except being cropped to match public_html ofcourse.
+The local files will be sent to the server and use the same path as it does
+localy. Meaning that folder1/folder2/file1 will be put in folder1/folder2/
+as file1, on the server.
