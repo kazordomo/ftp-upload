@@ -15,7 +15,7 @@
             <div class="wrapper">
                 <div class="local-directories box">
                     <div class="sub-title">Local files</div>
-                    <div id="parent-folder">
+                    <div class="parent-folder">
                         <i class="far fa-folder"></i>
                         <i class="fas fa-level-up-alt"></i>
                     </div>
@@ -27,6 +27,14 @@
                     <button id="button-single-upload">Upload to site</button>
                     <button id="button-single-all-upload">Upload all files to site</button>
                     <button id="button-multiple-upload">Upload to all sites</button>
+                </div>
+                <div class="server-files box">
+                    <div class="sub-title">Server files</div>
+                    <div class="parent-folder">
+                        <i class="far fa-folder"></i>
+                        <i class="fas fa-level-up-alt"></i>
+                    </div>
+                    <div id="server-tree"></div>
                 </div>
             </div>
             <script>require('./controller.js')</script>

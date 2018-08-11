@@ -2,67 +2,20 @@ const jsftp = require('jsftp');
 const dirTree = require('directory-tree');
 const { ftpConf } = require('../config/index.js');
 const comperator = require('file-compare');
+const { paths } = require('../config');
 
-const Ftp = new jsftp({
-    host: ftpConf.host,
-    port: ftpConf.port,
-    user: ftpConf.user,
-    pass: ftpConf.pass,
-});
+const Ftp = createNewFtpSess();
 
 Ftp.auth(ftpConf.user, ftpConf.pass, (err, data) => {
     if(err)
         return console.log('err: ', err);
 
-    // createDummyFiles();
     console.log('Auth success, welcome.');
 });
 
-function createDummyFiles() {
-    Ftp.ls('.', (err, res) => {
-        if(err)
-            return console.log('err: ', err);
-    
-        const arr = [];
-        res.forEach(item => {
-            if(item.name === 'new_dir')
-                arr.push(item);
-        });
-    
-        if(!arr.length) {
-            Ftp.raw('mkd', '/sites', (err, data) => {
-                if(err)
-                    return console.log('err: ', err);
-    
-                console.log(data);
-                Ftp.raw('mkd', '/sites/site1', (err, data) => {
-                    if(err)
-                        return console.log('err: ', err);
-        
-                    console.log(data);
-                });
-                Ftp.raw('mkd', '/sites/site2', (err, data) => {
-                    if(err)
-                        return console.log('err: ', err);
-        
-                    console.log(data);
-                });
-                Ftp.raw('mkd', '/sites/site3', (err, data) => {
-                    if(err)
-                        return console.log('err: ', err);
-        
-                    console.log(data);
-                });
-            });
-        }
-    });
-}
-
 function checkDiff(localFilePath) {
-    console.log(localFilePath);
-    const fileName = getFileNameFromPath(localFilePath);
+    const fileName = getRemotePath(localFilePath);
     return new Promise((resolve, reject) => { 
-        //TODO: we need the whole path, but splitted at the right time.
         Ftp.get(fileName, 'serverFile.txt', err => {
             if(err)
                 return reject(err);
@@ -88,11 +41,22 @@ function listLocalFiles(dirPath) {
     return dirTree(dirPath);
 }
 
+function listServerFiles(path = '.') {
+    return new Promise((resolve, reject) => { 
+        Ftp.ls(path, (err, res) => {
+            if(err)
+                return reject(err);
+            
+            return resolve(res);
+        });
+    });
+}
+
 function uploadFileToServer(filePath) {
-    const fileName = getFileNameFromPath(filePath);
+    const remotePath = getRemotePath(filePath);
     const ftpSess = createNewFtpSess();
 
-    ftpSess.put(filePath, fileName, err => {
+    ftpSess.put(filePath, remotePath, err => {
         if(err)
             return console.log('err: ', err);
     
@@ -100,10 +64,11 @@ function uploadFileToServer(filePath) {
     });
 }
 
+//TODO: hardcoded atm. should upload all files to all folders within folder...
 function uploadFileToAllSites(filePath) {
     const sitesArray = ['site1', 'site2', 'site3'];
     sitesArray.forEach(site => {
-        const fileName = getFileNameFromPath(filePath);
+        const fileName = getRemotePath(filePath);
         const ftpSess = createNewFtpSess();
 
         ftpSess.put(filePath, `sites/${site}/${fileName}`, err => {
@@ -126,14 +91,13 @@ function diffFiles(file1, file2) {
     });
 }
 
-function getFileNameFromPath(path) {
-    //TODO: path will only be split successfully with \\ on windows
-    const splitedPath = path.split('\\');
-    return splitedPath[splitedPath.length - 1];
+function getRemotePath(path) {
+    return path.substring(paths.mainPath.length, path.length).replace(/\\/g,"/");
 }
 
 module.exports = {
     listLocalFiles,
+    listServerFiles,
     uploadFileToServer,
     uploadFileToAllSites,
     checkDiff,

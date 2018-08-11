@@ -9,6 +9,9 @@
 }
 
 .box {
+    float: left;
+    width: 33.3%;
+    height: 95vh;
     padding: 15px;
     box-sizing: border-box;
 }
@@ -27,9 +30,6 @@
 }
 
 .local-directories {
-    float: left;
-    width: 40%;
-    height: 95vh;
     background-color: #eee;
 }
 
@@ -42,8 +42,11 @@
 }
 
 .upload-box {
-    float: right;
-    width: 60%;
+    background-color: #ccc;
+}
+
+.server-files {
+    background-color: #ffffff;
 }
 
 #upload-files {

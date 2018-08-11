@@ -3,37 +3,58 @@ const { paths } = require('../config');
 
 const inputElement = document.getElementById('input-path');
 const dirTree = document.getElementById('directory-tree');
+const serverTree = document.getElementById('server-tree');
 const inputPath = document.getElementById('input-path');
+
 const uploadFilesArr = [];
-let activeFolder = '';
+let activeLocalFolder = '';
+let serverFolderPath = '.';
 
 const init = () => {
     inputPath.value = paths.inputPathDefault;
     initEventListeners();
+    initServerFiles();
 }
 
 const checkDiff = async localFilePath => await ftp.checkDiff(localFilePath);
 
 const initEventListeners = () => {
     const buttonPath = document.getElementById('button-path');
-    const buttonParentFolder = document.getElementById('parent-folder')
+    const buttonLocalParentFolder = document.getElementsByClassName('parent-folder')[0];
+    const buttonServerParentFolder = document.getElementsByClassName('parent-folder')[1];
     const buttonUploadSingle = document.getElementById('button-single-upload');
     const buttonUploadMultiple = document.getElementById('button-multiple-upload');
     const buttonUploadAllSingle = document.getElementById('button-single-all-upload');
 
     buttonPath.addEventListener('click', () => getFolder());
-    buttonParentFolder.addEventListener('click', () => moveUpOneFolder(inputPath.value));
+    buttonLocalParentFolder.addEventListener('click', () => moveUpOneFolder(inputPath.value));
+    buttonServerParentFolder.addEventListener('click', () => moveUpOneFolder(serverFolderPath, true));
     buttonUploadSingle.addEventListener('click', () => uploadToSingleSite());
     buttonUploadAllSingle.addEventListener('click', () => uploadAllFilesToSite());
     buttonUploadMultiple.addEventListener('click', () => uploadToMultipleSites());
 }
 
-const createDirTreeDiv = item => {
+const initServerFiles = async path => {
+    const serverFilesAndFolders = await ftp.listServerFiles(path);
+
+    while(serverTree.firstChild)
+        serverTree.removeChild(serverTree.firstChild);
+        
+    serverFilesAndFolders.forEach(item => { 
+        const clickEvent = () => {
+            if(item.type === 0)
+                return;
+
+            serverFolderPath = `${serverFolderPath}/${item.name}`;
+            initServerFiles(serverFolderPath);
+        }
+        createDirTreeElem(item, serverTree, clickEvent)
+    });
+}
+
+const createDirTreeDiv = (item, clickEvent) => {
     let newDiv = document.createElement('div');
     newDiv.classList.add('row');
-    const clickEvent = () => item.type === 'directory' ? 
-        openDirectory(item.name) : 
-        addToUpload(item);
     newDiv.addEventListener('click', () => clickEvent());
     return newDiv;
 }
@@ -46,15 +67,17 @@ const createDirTreeSpan = item => {
 
 const createDirTreeIcon = item => {
     let newIcon = document.createElement('i');
-    if(item.type === 'directory')
+    // local items will display type === 'directory' if dir and 
+    // server items will display type === 1 if dir
+    if(item.type === 'directory' || item.type === 1)
         newIcon.classList.add('fas', 'fa-folder');
     else
         newIcon.classList.add('far', 'fa-file-alt');
     return newIcon;
 }
 
-const createDirTreeElem = (item, parentDiv) => {
-    let divEle = createDirTreeDiv(item);
+const createDirTreeElem = (item, parentDiv, clickEvent) => {
+    let divEle = createDirTreeDiv(item, clickEvent);
     let spanEle = createDirTreeSpan(item);
     let iconEle = createDirTreeIcon(item);
 
@@ -65,23 +88,45 @@ const createDirTreeElem = (item, parentDiv) => {
 
 const getFolder = () => {
     const filesAndFolders = ftp.listLocalFiles(inputElement.value);
-    if(activeFolder === inputElement.value)
+    if(activeLocalFolder === inputElement.value)
         return;
     else {
-        activeFolder = inputElement.value;
-        filesAndFolders.children.forEach(item => createDirTreeElem(item, dirTree));
+        activeLocalFolder = inputElement.value;
+        filesAndFolders.children.forEach(item => { 
+            const clickEvent = () => item.type === 'directory' ? 
+                openDirectory(item.name) : 
+                addToUpload(item);
+
+            createDirTreeElem(item, dirTree, clickEvent)
+        });
     }
 }
 
-const getParentDir = path => {
-    const splitPath = path.split('\\');
-    splitPath.splice([splitPath.length - 1], 1);
-    return splitPath.join('\\');
+const getParentDir = (path, serverTree) => {
+    //TODO: no. we should use slashes the same way around the project.
+
+    if(serverTree) {
+        const splitPath = path.split('/');
+        splitPath.splice([splitPath.length - 1], 1);
+        return splitPath.join('/');
+    } else {
+        const splitPath = path.split('\\');
+        splitPath.splice([splitPath.length - 1], 1);
+        return splitPath.join('\\');
+    }
 }
 
-const moveUpOneFolder = path => {
-    const newPath = getParentDir(path);
-    openDirectory(newPath, true);
+const moveUpOneFolder = (path, serverTree) => {
+    //TODO: sending serverTree = true to getParentDir because
+    // different usage of backslashes and normal slashes...
+
+    const newPath = getParentDir(path, serverTree);
+    if(serverTree) {
+        serverFolderPath = newPath;
+        initServerFiles(serverFolderPath);
+    } else {
+        openDirectory(newPath, true);
+    }
 }
 
 const openDirectory = (dirName, reset) => {
@@ -133,8 +178,8 @@ const uploadAllFiles = (func, arr = uploadFilesArr) => {
     });
 }
 
+//TODO: callback or promise to run initeServerFiles when file is uploaded.
 const uploadToSingleSite = arr => {
-    console.log(arr);
     uploadAllFiles(ftp.uploadFileToServer, arr);
 }
 
